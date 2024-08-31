@@ -1,4 +1,10 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
+import 'package:mvvm_statemanagements/constants/my_theme_data.dart';
+import 'package:mvvm_statemanagements/view_models/movies_provider.dart';
+import 'package:mvvm_statemanagements/view_models/theme_provider.dart';
+import 'package:provider/provider.dart';
 
 import '../constants/my_app_icons.dart';
 import '../service/init_getit.dart';
@@ -11,6 +17,7 @@ class MoviesScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // final themeProvider = Provider.of<ThemeProvider>(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text("Popular Movies"),
@@ -26,28 +33,58 @@ class MoviesScreen extends StatelessWidget {
               color: Colors.red,
             ),
           ),
-          IconButton(
-            onPressed: () async {
-              // final List<MovieModel> movies = await getIt<ApiService>().fetchMovies();
-              // log("movies $movies");
-              // final List<MoviesGenre> genres =
-              //     await getIt<MoviesRepository>().fetchGenres();
-              // await getIt<ApiService>().fetchGenres();
+          Consumer(
+            builder: (context, ThemeProvider themeProvider, child) {
+              log("Theme Button Rebuild");
 
-              // log("Genres are $genres");
+              return IconButton(
+                onPressed: () async {
+                  themeProvider.toggleTheme();
+                  // final List<MovieModel> movies = await getIt<ApiService>().fetchMovies();
+                  // log("movies $movies");
+                  // final List<MoviesGenre> genres =
+                  //     await getIt<MoviesRepository>().fetchGenres();
+                  // await getIt<ApiService>().fetchGenres();
+
+                  // log("Genres are $genres");
+                },
+                icon: Icon(
+                  themeProvider.themeData == MyThemeData.darkTheme
+                      ? MyAppIcons.darkMode
+                      : MyAppIcons.lightMode,
+                ),
+              );
             },
-            icon: const Icon(
-              MyAppIcons.darkMode,
-            ),
+            // child: Text("Theme mode"),
           ),
         ],
       ),
-      body: ListView.builder(
-        itemCount: 10,
-        itemBuilder: (context, index) {
-          return MoviesWidget();
-        },
-      ),
+      body: Consumer(builder: (context, MoviesProvider moviesProvider, child) {
+        if (moviesProvider.isLoading && moviesProvider.moviesList.isEmpty) {
+          return const Center(child: CircularProgressIndicator.adaptive());
+        } else if (moviesProvider.fetchMoviesError.isNotEmpty) {
+          return Center(child: Text(moviesProvider.fetchMoviesError));
+        }
+        return NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            if (scrollInfo.metrics.pixels ==
+                    scrollInfo.metrics.maxScrollExtent &&
+                !moviesProvider.isLoading) {
+              moviesProvider.getMovies();
+              return true;
+            }
+            return false;
+          },
+          child: ListView.builder(
+            itemCount: moviesProvider.moviesList.length,
+            itemBuilder: (context, index) {
+              return ChangeNotifierProvider.value(
+                  value: moviesProvider.moviesList[index],
+                  child: const MoviesWidget());
+            },
+          ),
+        );
+      }),
     );
   }
 }
