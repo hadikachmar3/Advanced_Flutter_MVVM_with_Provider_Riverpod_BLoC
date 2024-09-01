@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mvvm_statemanagements/constants/my_app_icons.dart';
 import 'package:mvvm_statemanagements/screens/movie_details.dart';
 import '../../models/movies_model.dart';
@@ -8,12 +9,17 @@ import '../cached_image.dart';
 import 'favorite_btn.dart';
 import 'genres_list_widget.dart';
 
-class MoviesWidget extends StatelessWidget {
-  const MoviesWidget({super.key, required this.movieModel});
+class MoviesWidget extends ConsumerWidget {
+  const MoviesWidget(
+      {super.key,
+      // required this.index,
+      required this.movieModel});
 
   final MovieModel movieModel;
+  // final int index;
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    // final movieModel = ref.watch(currentMovie(index));
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Material(
@@ -32,14 +38,11 @@ class MoviesWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Hero(
-                    tag: movieModel.id,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12.0),
-                      child: CachedImageWidget(
-                        imgUrl:
-                            "https://image.tmdb.org/t/p/w500/${movieModel.backdropPath}",
-                      ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12.0),
+                    child: CachedImageWidget(
+                      imgUrl:
+                          "https://image.tmdb.org/t/p/w500/${movieModel.backdropPath}",
                     ),
                   ),
                   const SizedBox(width: 10),

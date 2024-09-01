@@ -1,72 +1,22 @@
-
 import 'package:flutter/material.dart';
-import 'package:mvvm_statemanagements/models/movies_model.dart';
-import 'package:mvvm_statemanagements/screens/favorites_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:mvvm_statemanagements/view_models/movies/movies_provider.dart';
 
 import '../constants/my_app_icons.dart';
-import '../repository/movies_repo.dart';
+import '../enums/theme_enums.dart';
 import '../service/init_getit.dart';
 import '../service/navigation_service.dart';
+import '../view_models/theme_provider.dart';
 import '../widgets/movies/movies_widget.dart';
+import 'favorites_screen.dart';
 
-class MoviesScreen extends StatefulWidget {
+class MoviesScreen extends ConsumerWidget {
   const MoviesScreen({super.key});
 
   @override
-  State<MoviesScreen> createState() => _MoviesScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final themeState = ref.watch(themeProvider);
 
-class _MoviesScreenState extends State<MoviesScreen> {
-  final List<MovieModel> _movies = [];
-  int _currentPage = 1;
-  bool _isFetching = false;
-  final ScrollController _scrollController = ScrollController();
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchMovies();
-    _scrollController.addListener(_onScroll);
-  }
-
-  void _onScroll() {
-    if (_scrollController.position.pixels ==
-            _scrollController.position.maxScrollExtent &&
-        !_isFetching) {
-      _fetchMovies();
-    }
-  }
-
-  Future<void> _fetchMovies() async {
-    if (_isFetching) return;
-    setState(() {
-      _isFetching = true;
-    });
-    try {
-      final List<MovieModel> movies =
-          await getIt<MoviesRepository>().fetchMovies(page: _currentPage);
-      setState(() {
-        _movies.addAll(movies);
-        _currentPage++;
-      });
-    } catch (error) {
-      getIt<NavigationService>()
-          .showSnackbar("An Error has been occured $error");
-    } finally {
-      setState(() {
-        _isFetching = false;
-      });
-    }
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
-    _scrollController.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Popular Movies"),
@@ -84,33 +34,42 @@ class _MoviesScreenState extends State<MoviesScreen> {
           ),
           IconButton(
             onPressed: () async {
-              // final List<MovieModel> movies = await getIt<ApiService>().fetchMovies();
-              // log("movies $movies");
-              // final List<MoviesGenre> genres =
-              //     await getIt<MoviesRepository>().fetchGenres();
-              // await getIt<ApiService>().fetchGenres();
-
-              // log("Genres are $genres");
+              await ref.read(themeProvider.notifier).toggleTheme();
             },
-            icon: const Icon(
-              MyAppIcons.darkMode,
+            icon: Icon(
+              themeState == ThemeEnums.dark
+                  ? MyAppIcons.darkMode
+                  : MyAppIcons.lightMode,
             ),
           ),
         ],
       ),
-      body: ListView.builder(
-        controller: _scrollController,
-        itemCount: _movies.length + (_isFetching ? 1 : 0),
-        itemBuilder: (context, index) {
-          if (index < _movies.length) {
-            return MoviesWidget(
-              movieModel: _movies[index],
-            );
-          } else {
-            return const CircularProgressIndicator.adaptive();
-          }
-        },
-      ),
+      body: Consumer(builder: (context, WidgetRef ref, child) {
+        final movieState = ref.watch(moviesProvider);
+
+        if (movieState.isLoading && movieState.moviesList.isEmpty) {
+          return const Center(child: CircularProgressIndicator.adaptive());
+        } else if (movieState.fetchMoviesError.isNotEmpty) {
+          return Center(child: Text(movieState.fetchMoviesError));
+        }
+        return NotificationListener<ScrollNotification>(
+          onNotification: (ScrollNotification scrollInfo) {
+            if (scrollInfo.metrics.pixels ==
+                    scrollInfo.metrics.maxScrollExtent &&
+                !movieState.isLoading) {
+              ref.read(moviesProvider.notifier).getMovies();
+              return true;
+            }
+            return false;
+          },
+          child: ListView.builder(
+            itemCount: movieState.moviesList.length,
+            itemBuilder: (context, index) {
+              return MoviesWidget(movieModel: movieState.moviesList[index]);
+            },
+          ),
+        );
+      }),
     );
   }
 }
