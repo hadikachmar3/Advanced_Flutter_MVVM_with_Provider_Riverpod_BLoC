@@ -1,3 +1,7 @@
+# In-Depth Guide to Clean Architecture With MVVM in Flutter: Mastering State Management with Provider, Riverpod + BLoC
+
+## [Visit course 🔗](https://www.udemy.com/instructor/course/6121723/manage/basics/)
+## [Sale Coupons 🔗](https://discord.gg/gycactGhKH)
 ![Course Thumbnail](https://github.com/hadikachmar3/Movies_app_flutter_course_SM/blob/setstate_mvvm/State%20Managements%20-%20Local%20State%20Management%20vs%20Global%20State%20Management.jpg)
 
 # Course Description
