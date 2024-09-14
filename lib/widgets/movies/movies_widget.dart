@@ -22,8 +22,9 @@ class MoviesWidget extends StatelessWidget {
         child: InkWell(
           borderRadius: BorderRadius.circular(12.0),
           onTap: () {
-            getIt<NavigationService>()
-                .navigate(MovieDetailsScreen(movieModel: movieModel));
+            getIt<NavigationService>().navigate(MovieDetailsScreen(
+              movieModel: movieModel,
+            ));
           },
           child: Padding(
             padding: const EdgeInsets.all(8.0),
@@ -32,14 +33,11 @@ class MoviesWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Hero(
-                    tag: movieModel.id,
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12.0),
-                      child: CachedImageWidget(
-                        imgUrl:
-                            "https://image.tmdb.org/t/p/w500/${movieModel.backdropPath}",
-                      ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(12.0),
+                    child: CachedImageWidget(
+                      imgUrl:
+                          "https://image.tmdb.org/t/p/w500/${movieModel.backdropPath}",
                     ),
                   ),
                   const SizedBox(width: 10),

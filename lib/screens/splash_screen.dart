@@ -1,64 +1,70 @@
 import 'package:flutter/material.dart';
-import 'package:mvvm_statemanagements/widgets/my_error_widget.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mvvm_statemanagements/service/init_getit.dart';
+import 'package:mvvm_statemanagements/view_models/favorites/favorites_bloc.dart';
+import 'package:mvvm_statemanagements/view_models/movies/movies_bloc.dart';
 
-import '../repository/movies_repo.dart';
-import '../service/init_getit.dart';
 import '../service/navigation_service.dart';
+import '../widgets/my_error_widget.dart';
 import 'movies_screen.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends StatelessWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
-}
-
-class _SplashScreenState extends State<SplashScreen> {
-  bool _isLoading = true;
-  String _errorMessage = '';
-  final _moviesRepository = getIt<MoviesRepository>();
-
-  Future<void> _loadData() async {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = "";
-    });
-    try {
-      await _moviesRepository.fetchGenres();
-      await getIt<NavigationService>().navigateReplace(const MoviesScreen());
-    } catch (e) {
-      setState(() {
-        _errorMessage = e.toString();
-      });
-    } finally {
-      setState(() {
-        _isLoading = false;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadData();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    final moviesBloc = getIt<MoviesBloc>();
+    final favoriteBloc = getIt<FavoritesBloc>();
+    final navigationService = getIt<NavigationService>();
     return Scaffold(
-      body: _isLoading
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Text("Loading..."),
-                  SizedBox(height: 20),
-                  CircularProgressIndicator.adaptive(),
-                ],
-              ),
-            )
-          : MyErrorWidget(errorText: _errorMessage, retryFunction: _loadData),
+      body: MultiBlocListener(
+        listeners: [
+          BlocListener<MoviesBloc, MoviesState>(
+            bloc: moviesBloc..add(FetchMoviesEvent()),
+            listener: (context, state) {
+              if (state is MoviesLoadedState &&
+                  favoriteBloc.state is FavoritesLoaded) {
+                navigationService.navigateReplace(const MoviesScreen());
+              } else if (state is MoviesErrorState) {
+                navigationService.showSnackbar(state.message);
+              }
+            },
+          ),
+          BlocListener<FavoritesBloc, FavoritesState>(
+            bloc: favoriteBloc..add(LoadFavorites()),
+            listener: (context, state) {
+              if (state is FavoritesError) {
+                navigationService.showSnackbar(state.message);
+              }
+            },
+          ),
+        ],
+        child: BlocBuilder<MoviesBloc, MoviesState>(
+          bloc: moviesBloc..add(FetchMoviesEvent()),
+          builder: (context, state) {
+            if (state is MoviesLoadingState) {
+              return const Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text("Loading..."),
+                    SizedBox(height: 20),
+                    CircularProgressIndicator.adaptive(),
+                  ],
+                ),
+              );
+            } else if (state is MoviesErrorState) {
+              return MyErrorWidget(
+                  errorText: state.message,
+                  retryFunction: () {
+                    moviesBloc.add(FetchMoviesEvent());
+                  });
+            }
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
     );
   }
 }

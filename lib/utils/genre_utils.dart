@@ -1,17 +1,13 @@
 import 'package:mvvm_statemanagements/models/movies_genre.dart';
 
-import '../repository/movies_repo.dart';
-import '../service/init_getit.dart';
-
 class GenreUtils {
-  static List<MoviesGenre> movieGenresNames(List<int> genreIds) {
-    final moviesRepository = getIt<MoviesRepository>();
-    final cachedGenres = moviesRepository.cachedGenres;
+  static List<MoviesGenre> movieGenresNames(
+      List<int> movieGenreIds, List<MoviesGenre> allGenresList) {
     List<MoviesGenre> genresNames = [];
-    for (var genreId in genreIds) {
-      var genre = cachedGenres.firstWhere(
+    for (var genreId in movieGenreIds) {
+      var genre = allGenresList.firstWhere(
         (g) => g.id == genreId,
-        orElse: () => MoviesGenre(id: 5448484, name: 'Unknown'),
+        orElse: () => const MoviesGenre(id: 5448484, name: 'Unknown'),
       );
       genresNames.add(genre);
     }
