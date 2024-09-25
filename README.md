@@ -39,7 +39,7 @@ This setup ensures that all course videos are clear and professionally produced.
 
 ## Course Structure:
 
-- Duration: Approximately **7 hours** of content
+- Duration: Approximately **12 hours** of content
 - Regular updates to ensure the latest techniques and Flutter updates are covered
 
 ## What to Expect After This Course:
