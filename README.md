@@ -9,6 +9,7 @@
 ## [Sale Coupons 🔗](https://discord.gg/gycactGhKH)
 ![Course Thumbnail](https://github.com/hadikachmar3/Movies_app_flutter_course_SM/blob/setstate_mvvm/State%20Managements%20-%20Local%20State%20Management%20vs%20Global%20State%20Management.jpg)
 
+![Course Thumbnail](https://github.com/user-attachments/assets/f0f4c3cc-13f8-4298-aef6-eae4b8fe1cdf)
 # Course Description
 
 Dive into the depths of **Flutter's MVVM architecture** with different state managements in this comprehensive course designed for intermediate to advanced developers. Learn how to build a dynamic movie app that interacts with a **REST API**, manages local favorites, and incorporates genre mapping for enhanced functionality with **Dark and Light themes**. This course will guide you through the journey of implementing **MVVM** with different state management strategies—**setState**, **Provider**, **Riverpod**, and **BLoC**—each covered in dedicated sections to provide you with a robust understanding of each approach.
